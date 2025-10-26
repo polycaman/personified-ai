@@ -1,0 +1,18 @@
+<div class="app-container">
+  <nav class="nav-bar">
+    <div class="nav-title">Personified AI</div>
+    <div class="nav-buttons">
+      <button [class.active]="currentView === 'chat'" (click)="switchView('chat')">
+        💬 Chat
+      </button>
+      <button [class.active]="currentView === 'config'" (click)="switchView('config')">
+        ⚙️ Config
+      </button>
+    </div>
+  </nav>
+
+  <div class="content">
+    <app-chat *ngIf="currentView === 'chat'"></app-chat>
+    <app-config *ngIf="currentView === 'config'"></app-config>
+  </div>
+</div>

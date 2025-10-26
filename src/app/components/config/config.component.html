@@ -1,0 +1,45 @@
+<div class="config-container">
+  <h2>Ollama Configuration</h2>
+  
+  <div class="config-form">
+    <div class="form-group">
+      <label>Host:</label>
+      <input type="text" [(ngModel)]="config.host" placeholder="localhost">
+    </div>
+
+    <div class="form-group">
+      <label>Port:</label>
+      <input type="number" [(ngModel)]="config.port" placeholder="11434">
+    </div>
+
+    <div class="form-group">
+      <label>Model:</label>
+      <input type="text" [(ngModel)]="config.model" placeholder="llama2">
+      <small>Common models: llama2, llama3, mistral, phi, gemma</small>
+    </div>
+
+    <div class="connection-status">
+      <span class="status-indicator" [class.connected]="isConnected" [class.disconnected]="!isConnected">
+        {{ isConnected ? '● Connected' : '○ Disconnected' }}
+      </span>
+      <button (click)="testConnection()" [disabled]="isTesting">
+        {{ isTesting ? 'Testing...' : 'Test Connection' }}
+      </button>
+    </div>
+
+    <button class="save-button" (click)="saveConfig()">
+      Save Configuration
+    </button>
+  </div>
+
+  <div class="info-section">
+    <h3>Setup Instructions</h3>
+    <ol>
+      <li>Install Ollama from <a href="https://ollama.ai" target="_blank">ollama.ai</a></li>
+      <li>Pull a model: <code>ollama pull llama2</code></li>
+      <li>Ensure Ollama is running</li>
+      <li>Configure the host, port, and model above</li>
+      <li>Test the connection</li>
+    </ol>
+  </div>
+</div>

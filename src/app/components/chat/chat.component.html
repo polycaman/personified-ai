@@ -1,0 +1,93 @@
+<div class="chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="character-info" *ngIf="character">
+      <h2>{{ character.name }}</h2>
+      <p class="personality">{{ character.personality }}</p>
+      <div class="traits">
+        <span class="trait" *ngFor="let trait of character.traits">{{ trait }}</span>
+      </div>
+    </div>
+    <div class="no-character" *ngIf="!character">
+      <h2>No Character</h2>
+      <button (click)="generateNewCharacter()" [disabled]="isLoading">
+        Generate Character
+      </button>
+    </div>
+    <div class="header-actions">
+      <button (click)="generateNewCharacter()" [disabled]="isLoading" title="Generate new character">
+        🎭
+      </button>
+      <button (click)="clearChat()" [disabled]="isLoading" title="Clear chat">
+        🗑️
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="messages-container" #messagesContainer>
+    <div class="welcome-message" *ngIf="messages.length === 0">
+      <h3>Welcome to Personified AI</h3>
+      <p *ngIf="character">Start chatting with {{ character.name }}!</p>
+      <p *ngIf="!character">Generate a character to begin.</p>
+      <div class="info">
+        <p><strong>How it works:</strong></p>
+        <ul>
+          <li>Each response is crafted by 14 thinkers (7 sins + 7 virtues)</li>
+          <li>A 15th decider fuses their perspectives into a coherent response</li>
+          <li>Memories are stored and referenced for consistent personality</li>
+          <li>Fully offline using local Ollama API</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="message" *ngFor="let message of messages" [class.user]="message.role === 'user'" [class.assistant]="message.role === 'assistant'">
+      <div class="message-header">
+        <span class="role">{{ message.role === 'user' ? 'You' : character?.name }}</span>
+        <span class="time">{{ formatTime(message.timestamp) }}</span>
+      </div>
+      <div class="message-content">{{ message.content }}</div>
+      <div class="message-actions" *ngIf="message.role === 'assistant' && message.thinkerResponses">
+        <button (click)="toggleThinkers(message)" class="show-thinkers">
+          {{ selectedMessage === message ? 'Hide' : 'Show' }} Thinkers
+        </button>
+      </div>
+      <div class="thinkers-panel" *ngIf="selectedMessage === message && message.thinkerResponses">
+        <h4>Thinker Perspectives:</h4>
+        <div class="thinkers-grid">
+          <div class="thinker" *ngFor="let thinker of message.thinkerResponses" [class.sin]="thinker.thinkerType === 'sin'" [class.virtue]="thinker.thinkerType === 'virtue'">
+            <div class="thinker-name">{{ thinker.name }}</div>
+            <div class="thinker-draft">{{ thinker.draft }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="loading-indicator" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Thinking... (14 thinkers + 1 decider)</p>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-container">
+    <textarea [(ngModel)]="userInput" (keydown)="onKeyDown($event)" placeholder="Type your message... (Enter to send, Shift+Enter for new line)" [disabled]="isLoading || !character" rows="3"></textarea>
+    <button (click)="sendMessage()" [disabled]="isLoading || !userInput.trim() || !character">
+      Send
+    </button>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3>Memories ({{ memories.length }})</h3>
+    <div class="memories-list">
+      <div class="memory" *ngFor="let memory of memories.slice(0, 10)">
+        <div class="memory-summary">{{ memory.summary }}</div>
+        <div class="memory-time">{{ formatTime(memory.timestamp) }}</div>
+      </div>
+      <div class="no-memories" *ngIf="memories.length === 0">
+        No memories yet. Start chatting to create memories!
+      </div>
+    </div>
+  </div>
+</div>
