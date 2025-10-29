@@ -1,21 +1,21 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { OllamaService } from '../../services/ollama.service';
-import { OllamaConfig } from '../../models/types';
+import { Component, OnInit } from "@angular/core";
+import { CommonModule } from "@angular/common";
+import { FormsModule } from "@angular/forms";
+import { OllamaService } from "../../services/ollama.service";
+import { OllamaConfig } from "../../models/types";
 
 @Component({
-  selector: 'app-config',
+  selector: "app-config",
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './config.component.html',
-  styleUrls: ['./config.component.scss']
+  templateUrl: "./config.component.html",
+  styleUrls: ["./config.component.scss"],
 })
 export class ConfigComponent implements OnInit {
   config: OllamaConfig = {
-    host: 'localhost',
+    host: "localhost",
     port: 11434,
-    model: 'llama2'
+    model: "llama3.2",
   };
   isConnected = false;
   isTesting = false;
@@ -41,6 +41,6 @@ export class ConfigComponent implements OnInit {
   async saveConfig(): Promise<void> {
     this.ollamaService.saveConfig(this.config);
     await this.testConnection();
-    alert('Configuration saved!');
+    alert("Configuration saved!");
   }
 }

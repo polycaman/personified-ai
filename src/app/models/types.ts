@@ -1,9 +1,11 @@
 export interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
   thinkerResponses?: ThinkerResponse[];
+  isStreaming?: boolean; // Track if message is being streamed
+  thinkersComplete?: boolean; // Track if thinkers phase is complete
 }
 
 export interface ThinkerResponse {
@@ -11,9 +13,10 @@ export interface ThinkerResponse {
   name: string;
   draft: string;
   weight: number;
+  isStreaming?: boolean; // Track if individual thinker is still streaming
 }
 
-export type ThinkerType = 'sin' | 'virtue';
+export type ThinkerType = "sin" | "virtue";
 
 export interface Thinker {
   name: string;

@@ -1,5 +1,5 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
+const { app, BrowserWindow } = require("electron");
+const path = require("path");
 
 let mainWindow;
 
@@ -10,35 +10,38 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: false
+      sandbox: false,
+      webSecurity: false, // Disable web security to allow CORS requests to localhost
     },
-    backgroundColor: '#1a1a2e',
-    title: 'Personified AI'
+    backgroundColor: "#1a1a2e",
+    title: "Personified AI",
   });
 
   // In production, load the built Angular app
   if (app.isPackaged) {
-    mainWindow.loadFile(path.join(__dirname, '../dist/personified-ai/browser/index.html'));
+    mainWindow.loadFile(
+      path.join(__dirname, "../dist/personified-ai/browser/index.html")
+    );
   } else {
     // In development, connect to Angular dev server
-    mainWindow.loadURL('http://localhost:4200');
+    mainWindow.loadURL("http://localhost:4200");
     mainWindow.webContents.openDevTools();
   }
 
-  mainWindow.on('closed', function () {
+  mainWindow.on("closed", function () {
     mainWindow = null;
   });
 }
 
 app.whenReady().then(createWindow);
 
-app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') {
+app.on("window-all-closed", function () {
+  if (process.platform !== "darwin") {
     app.quit();
   }
 });
 
-app.on('activate', function () {
+app.on("activate", function () {
   if (mainWindow === null) {
     createWindow();
   }

@@ -5,7 +5,9 @@
       <h2>{{ character.name }}</h2>
       <p class="personality">{{ character.personality }}</p>
       <div class="traits">
-        <span class="trait" *ngFor="let trait of character.traits">{{ trait }}</span>
+        <span class="trait" *ngFor="let trait of character.traits">{{
+          trait
+        }}</span>
       </div>
     </div>
     <div class="no-character" *ngIf="!character">
@@ -15,11 +17,23 @@
       </button>
     </div>
     <div class="header-actions">
-      <button (click)="generateNewCharacter()" [disabled]="isLoading" title="Generate new character">
+      <button
+        (click)="generateNewCharacter()"
+        [disabled]="isLoading"
+        title="Generate new character"
+      >
         🎭
       </button>
       <button (click)="clearChat()" [disabled]="isLoading" title="Clear chat">
         🗑️
+      </button>
+      <button 
+        (click)="showThinkersRealTime = !showThinkersRealTime"
+        [class.active]="showThinkersRealTime"
+        title="Toggle real-time thinker streaming"
+        class="streaming-toggle"
+      >
+        {{ showThinkersRealTime ? '🧠📡' : '🧠⏸️' }}
       </button>
     </div>
   </div>
@@ -34,52 +48,140 @@
         <p><strong>How it works:</strong></p>
         <ul>
           <li>Each response is crafted by 14 thinkers (7 sins + 7 virtues)</li>
-          <li>A 15th decider fuses their perspectives into a coherent response</li>
+          <li>
+            A 15th decider fuses their perspectives into a coherent response
+          </li>
           <li>Memories are stored and referenced for consistent personality</li>
           <li>Fully offline using local Ollama API</li>
         </ul>
       </div>
     </div>
 
-    <div class="message" *ngFor="let message of messages" [class.user]="message.role === 'user'" [class.assistant]="message.role === 'assistant'">
+    <div
+      class="message"
+      *ngFor="let message of messages"
+      [class.user]="message.role === 'user'"
+      [class.assistant]="message.role === 'assistant'"
+    >
       <div class="message-header">
-        <span class="role">{{ message.role === 'user' ? 'You' : character?.name }}</span>
+        <span class="role">{{
+          message.role === "user" ? "You" : character?.name
+        }}</span>
         <span class="time">{{ formatTime(message.timestamp) }}</span>
       </div>
-      <div class="message-content">{{ message.content }}</div>
-      <div class="message-actions" *ngIf="message.role === 'assistant' && message.thinkerResponses">
+      <div class="message-content">
+        {{ message.content }}
+        <span class="streaming-cursor" *ngIf="message.isStreaming">▋</span>
+      </div>
+      <div
+        class="message-actions"
+        *ngIf="message.role === 'assistant' && message.thinkerResponses"
+      >
         <button (click)="toggleThinkers(message)" class="show-thinkers">
-          {{ selectedMessage === message ? 'Hide' : 'Show' }} Thinkers
+          {{ selectedMessage === message ? "Hide" : "Show" }} Thinkers
         </button>
       </div>
-      <div class="thinkers-panel" *ngIf="selectedMessage === message && message.thinkerResponses">
+      <div
+        class="thinkers-panel"
+        *ngIf="selectedMessage === message && message.thinkerResponses"
+      >
         <h4>Thinker Perspectives:</h4>
         <div class="thinkers-grid">
-          <div class="thinker" *ngFor="let thinker of message.thinkerResponses" [class.sin]="thinker.thinkerType === 'sin'" [class.virtue]="thinker.thinkerType === 'virtue'">
-            <div class="thinker-name">{{ thinker.name }}</div>
+          <div
+            class="thinker"
+            *ngFor="let thinker of message.thinkerResponses"
+            [class.sin]="thinker.thinkerType === 'sin'"
+            [class.virtue]="thinker.thinkerType === 'virtue'"
+            [class.streaming]="thinker.isStreaming"
+          >
+            <div class="thinker-name">
+              {{ thinker.name }}
+              <span class="streaming-indicator" *ngIf="thinker.isStreaming">▋</span>
+            </div>
             <div class="thinker-draft">{{ thinker.draft }}</div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Thinking Indicator (Thinkers Phase) -->
+    <div class="loading-indicator" *ngIf="isThinking && !showThinkersRealTime">
+      <div class="spinner"></div>
+      <p>Thinking... (14 thinkers gathering perspectives)</p>
+    </div>
+
+    <!-- Minimal thinking indicator when real-time is enabled -->
+    <div class="minimal-loading-indicator" *ngIf="isThinking && showThinkersRealTime">
+      <p>🧠 Thinkers are working... (see panel below)</p>
+    </div>
+
+    <!-- Deciding Indicator (Decider Phase - shows alongside streaming) -->
+    <div class="deciding-indicator" *ngIf="isDeciding">
+      <div class="small-spinner"></div>
+      <p>Deciding... (synthesizing response)</p>
+    </div>
+
+    <!-- General Loading Indicator (for other operations) -->
     <div class="loading-indicator" *ngIf="isLoading">
       <div class="spinner"></div>
-      <p>Thinking... (14 thinkers + 1 decider)</p>
+      <p>Loading...</p>
+    </div>
+  </div>
+
+  <!-- Real-time Thinkers Panel (fixed position, always visible when streaming) -->
+  <div class="live-thinkers-overlay" *ngIf="showThinkersRealTime && (isThinking || isDeciding) && getCurrentStreamingMessage()">
+    <div class="live-thinkers-panel">
+      <h4>🧠 Live Thinkers</h4>
+      <div class="thinkers-grid">
+        <div
+          class="thinker"
+          *ngFor="let thinker of getCurrentStreamingMessage()?.thinkerResponses || []"
+          [class.sin]="thinker.thinkerType === 'sin'"
+          [class.virtue]="thinker.thinkerType === 'virtue'"
+          [class.streaming]="thinker.isStreaming"
+          [class.empty]="!thinker.draft"
+        >
+          <div class="thinker-name">
+            {{ thinker.name }}
+            <span class="streaming-indicator" *ngIf="thinker.isStreaming">▋</span>
+            <span class="completed-indicator" *ngIf="!thinker.isStreaming && thinker.draft">✓</span>
+          </div>
+          <div class="thinker-draft">{{ thinker.draft || '...' }}</div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Input -->
   <div class="input-container">
-    <textarea [(ngModel)]="userInput" (keydown)="onKeyDown($event)" placeholder="Type your message... (Enter to send, Shift+Enter for new line)" [disabled]="isLoading || !character" rows="3"></textarea>
-    <button (click)="sendMessage()" [disabled]="isLoading || !userInput.trim() || !character">
-      Send
+    <textarea
+      [(ngModel)]="userInput"
+      (keydown)="onKeyDown($event)"
+      placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
+      [disabled]="(isThinking || isDeciding) || !character"
+      rows="3"
+    ></textarea>
+    <button
+      (click)="sendMessage()"
+      [disabled]="(isThinking || isDeciding) || !userInput.trim() || !character"
+    >
+      {{ isThinking ? 'Thinking...' : isDeciding ? 'Deciding...' : 'Send' }}
     </button>
   </div>
 
   <!-- Sidebar -->
   <div class="sidebar">
-    <h3>Memories ({{ memories.length }})</h3>
+    <div class="memories-header">
+      <h3>Memories ({{ memories.length }})</h3>
+      <button
+        (click)="flushMemories()"
+        [disabled]="isLoading || memories.length === 0"
+        title="Clear all memories"
+        class="flush-memories-btn"
+      >
+        🧠🗑️
+      </button>
+    </div>
     <div class="memories-list">
       <div class="memory" *ngFor="let memory of memories.slice(0, 10)">
         <div class="memory-summary">{{ memory.summary }}</div>

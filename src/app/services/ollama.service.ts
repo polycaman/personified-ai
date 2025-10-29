@@ -1,14 +1,14 @@
-import { Injectable } from '@angular/core';
-import { OllamaConfig } from '../models/types';
+import { Injectable } from "@angular/core";
+import { OllamaConfig } from "../models/types";
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root",
 })
 export class OllamaService {
   private config: OllamaConfig = {
-    host: 'localhost',
+    host: "localhost",
     port: 11434,
-    model: 'llama2'
+    model: "llama2",
   };
 
   constructor() {
@@ -16,7 +16,7 @@ export class OllamaService {
   }
 
   private loadConfig(): void {
-    const saved = localStorage.getItem('ollama-config');
+    const saved = localStorage.getItem("ollama-config");
     if (saved) {
       this.config = JSON.parse(saved);
     }
@@ -24,7 +24,7 @@ export class OllamaService {
 
   saveConfig(config: OllamaConfig): void {
     this.config = config;
-    localStorage.setItem('ollama-config', JSON.stringify(config));
+    localStorage.setItem("ollama-config", JSON.stringify(config));
   }
 
   getConfig(): OllamaConfig {
@@ -32,13 +32,14 @@ export class OllamaService {
   }
 
   async generate(prompt: string, system?: string): Promise<string> {
+    // Use direct Ollama URL for Electron app
     const url = `http://${this.config.host}:${this.config.port}/api/generate`;
-    
+
     try {
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           model: this.config.model,
@@ -53,15 +54,82 @@ export class OllamaService {
       }
 
       const data = await response.json();
-      return data.response || '';
+      return data.response || "";
     } catch (error) {
-      console.error('Error calling Ollama API:', error);
+      console.error("Error calling Ollama API:", error);
+      throw error;
+    }
+  }
+
+  async *generateStream(
+    prompt: string,
+    system?: string
+  ): AsyncGenerator<string, void, unknown> {
+    // Use direct Ollama URL for Electron app
+    const url = `http://${this.config.host}:${this.config.port}/api/generate`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: this.config.model,
+          prompt: prompt,
+          system: system,
+          stream: true,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete JSON lines
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const data = JSON.parse(line);
+              if (data.response) {
+                yield data.response;
+              }
+              if (data.done) {
+                return;
+              }
+            } catch (e) {
+              // Skip malformed JSON lines
+              continue;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error calling Ollama streaming API:", error);
       throw error;
     }
   }
 
   async testConnection(): Promise<boolean> {
     try {
+      // Use direct Ollama URL for Electron app
       const url = `http://${this.config.host}:${this.config.port}/api/tags`;
       const response = await fetch(url);
       return response.ok;

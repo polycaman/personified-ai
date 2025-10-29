@@ -5,7 +5,7 @@
   "main": "electron/main.js",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "electron": "electron .",
     "electron-dev": "concurrently \"npm run start\" \"wait-on http://localhost:4200 && electron .\"",
