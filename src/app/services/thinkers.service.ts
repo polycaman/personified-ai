@@ -142,9 +142,13 @@ export class ThinkersService {
     userMessage: string,
     character: string,
     memoryContext: string
-  ): AsyncGenerator<{ responses: ThinkerResponse[], isComplete: boolean }, void, unknown> {
+  ): AsyncGenerator<
+    { responses: ThinkerResponse[]; isComplete: boolean },
+    void,
+    unknown
+  > {
     const responses: ThinkerResponse[] = [];
-    
+
     // Initialize all thinkers with empty responses
     for (const thinker of this.thinkers) {
       responses.push({
@@ -162,7 +166,7 @@ export class ThinkersService {
     // Process each thinker sequentially for better streaming visibility
     for (let i = 0; i < this.thinkers.length; i++) {
       const thinker = this.thinkers[i];
-      
+
       try {
         let fullContent = "";
         for await (const chunk of this.getThinkerDraftStream(
@@ -173,27 +177,26 @@ export class ThinkersService {
         )) {
           fullContent += chunk;
           responses[i].draft = fullContent.trim();
-          
+
           // Yield current state with this thinker's updated content
           yield { responses: [...responses], isComplete: false };
         }
-        
+
         // Mark this thinker as complete
         responses[i].isStreaming = false;
         responses[i].draft = fullContent.trim();
-        
+
         // Yield completion state for this thinker
         yield { responses: [...responses], isComplete: false };
-        
       } catch (error) {
         console.error(`Error streaming from ${thinker.name}:`, error);
         responses[i].draft = `[${thinker.name} response unavailable]`;
         responses[i].isStreaming = false;
-        
+
         yield { responses: [...responses], isComplete: false };
       }
     }
-    
+
     // Final yield with all complete
     yield { responses: [...responses], isComplete: true };
   }
@@ -236,7 +239,10 @@ Memory context: ${memoryContext}
 IMPORTANT: Provide a very brief draft response (maximum 1-2 short sentences) from your unique perspective. Be concise and focused.`;
 
     try {
-      for await (const chunk of this.ollama.generateStream(userMessage, systemPrompt)) {
+      for await (const chunk of this.ollama.generateStream(
+        userMessage,
+        systemPrompt
+      )) {
         yield chunk;
       }
     } catch (error) {

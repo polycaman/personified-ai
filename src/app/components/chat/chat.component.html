@@ -27,13 +27,13 @@
       <button (click)="clearChat()" [disabled]="isLoading" title="Clear chat">
         🗑️
       </button>
-      <button 
+      <button
         (click)="showThinkersRealTime = !showThinkersRealTime"
         [class.active]="showThinkersRealTime"
         title="Toggle real-time thinker streaming"
         class="streaming-toggle"
       >
-        {{ showThinkersRealTime ? '🧠📡' : '🧠⏸️' }}
+        {{ showThinkersRealTime ? "🧠📡" : "🧠⏸️" }}
       </button>
     </div>
   </div>
@@ -96,7 +96,9 @@
           >
             <div class="thinker-name">
               {{ thinker.name }}
-              <span class="streaming-indicator" *ngIf="thinker.isStreaming">▋</span>
+              <span class="streaming-indicator" *ngIf="thinker.isStreaming"
+                >▋</span
+              >
             </div>
             <div class="thinker-draft">{{ thinker.draft }}</div>
           </div>
@@ -111,7 +113,10 @@
     </div>
 
     <!-- Minimal thinking indicator when real-time is enabled -->
-    <div class="minimal-loading-indicator" *ngIf="isThinking && showThinkersRealTime">
+    <div
+      class="minimal-loading-indicator"
+      *ngIf="isThinking && showThinkersRealTime"
+    >
       <p>🧠 Thinkers are working... (see panel below)</p>
     </div>
 
@@ -129,13 +134,22 @@
   </div>
 
   <!-- Real-time Thinkers Panel (fixed position, always visible when streaming) -->
-  <div class="live-thinkers-overlay" *ngIf="showThinkersRealTime && (isThinking || isDeciding) && getCurrentStreamingMessage()">
+  <div
+    class="live-thinkers-overlay"
+    *ngIf="
+      showThinkersRealTime &&
+      (isThinking || isDeciding) &&
+      getCurrentStreamingMessage()
+    "
+  >
     <div class="live-thinkers-panel">
       <h4>🧠 Live Thinkers</h4>
       <div class="thinkers-grid">
         <div
           class="thinker"
-          *ngFor="let thinker of getCurrentStreamingMessage()?.thinkerResponses || []"
+          *ngFor="
+            let thinker of getCurrentStreamingMessage()?.thinkerResponses || []
+          "
           [class.sin]="thinker.thinkerType === 'sin'"
           [class.virtue]="thinker.thinkerType === 'virtue'"
           [class.streaming]="thinker.isStreaming"
@@ -143,10 +157,16 @@
         >
           <div class="thinker-name">
             {{ thinker.name }}
-            <span class="streaming-indicator" *ngIf="thinker.isStreaming">▋</span>
-            <span class="completed-indicator" *ngIf="!thinker.isStreaming && thinker.draft">✓</span>
+            <span class="streaming-indicator" *ngIf="thinker.isStreaming"
+              >▋</span
+            >
+            <span
+              class="completed-indicator"
+              *ngIf="!thinker.isStreaming && thinker.draft"
+              >✓</span
+            >
           </div>
-          <div class="thinker-draft">{{ thinker.draft || '...' }}</div>
+          <div class="thinker-draft">{{ thinker.draft || "..." }}</div>
         </div>
       </div>
     </div>
@@ -158,14 +178,14 @@
       [(ngModel)]="userInput"
       (keydown)="onKeyDown($event)"
       placeholder="Type your message... (Enter to send, Shift+Enter for new line)"
-      [disabled]="(isThinking || isDeciding) || !character"
+      [disabled]="isThinking || isDeciding || !character"
       rows="3"
     ></textarea>
     <button
       (click)="sendMessage()"
-      [disabled]="(isThinking || isDeciding) || !userInput.trim() || !character"
+      [disabled]="isThinking || isDeciding || !userInput.trim() || !character"
     >
-      {{ isThinking ? 'Thinking...' : isDeciding ? 'Deciding...' : 'Send' }}
+      {{ isThinking ? "Thinking..." : isDeciding ? "Deciding..." : "Send" }}
     </button>
   </div>
 

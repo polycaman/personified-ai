@@ -149,14 +149,14 @@ export class ChatService {
         )) {
           thinkerResponses = thinkerState.responses;
           assistantMessage.thinkerResponses = thinkerState.responses;
-          
+
           if (thinkerState.isComplete) {
             // Signal that thinkers phase is complete and decider phase starts
             assistantMessage.thinkersComplete = true;
           }
-          
+
           yield { ...assistantMessage };
-          
+
           if (thinkerState.isComplete) {
             break;
           }
@@ -170,7 +170,7 @@ export class ChatService {
           }. Traits: ${character.traits.join(", ")}`,
           memoryContext
         );
-        
+
         assistantMessage.thinkerResponses = thinkerResponses;
         assistantMessage.thinkersComplete = true;
         yield { ...assistantMessage };

@@ -48,7 +48,10 @@ export class ChatComponent implements OnInit {
 
     try {
       // Use streaming for real-time response updates
-      for await (const message of this.chatService.sendMessageStream(content, this.showThinkersRealTime)) {
+      for await (const message of this.chatService.sendMessageStream(
+        content,
+        this.showThinkersRealTime
+      )) {
         this.messages = this.chatService.getMessages();
         this.scrollToBottom();
 
@@ -109,7 +112,10 @@ export class ChatComponent implements OnInit {
     // Find the last message that is currently streaming
     for (let i = this.messages.length - 1; i >= 0; i--) {
       const message = this.messages[i];
-      if (message.role === 'assistant' && (message.isStreaming || this.isThinking)) {
+      if (
+        message.role === "assistant" &&
+        (message.isStreaming || this.isThinking)
+      ) {
         return message;
       }
     }
